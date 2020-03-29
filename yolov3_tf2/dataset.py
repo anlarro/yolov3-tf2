@@ -1,5 +1,7 @@
 import tensorflow as tf
-from absl.flags import FLAGS
+#from absl.flags import FLAGS
+
+yolo_max_boxes = 100
 
 @tf.function
 def transform_targets_for_output(y_true, grid_size, anchor_idxs):
@@ -112,7 +114,7 @@ def parse_tfrecord(tfrecord, class_table, size):
                         tf.sparse.to_dense(x['image/object/bbox/ymax']),
                         labels], axis=1)
 
-    paddings = [[0, FLAGS.yolo_max_boxes - tf.shape(y_train)[0]], [0, 0]]
+    paddings = [[0, yolo_max_boxes - tf.shape(y_train)[0]], [0, 0]]
     y_train = tf.pad(y_train, paddings)
 
     return x_train, y_train
@@ -128,9 +130,9 @@ def load_tfrecord_dataset(file_pattern, class_file, size=416):
     return dataset.map(lambda x: parse_tfrecord(x, class_table, size))
 
 
-def load_fake_dataset():
+def load_fake_dataset(img_path):
     x_train = tf.image.decode_jpeg(
-        open('./data/girl.png', 'rb').read(), channels=3)
+        open(img_path, 'rb').read(), channels=3)
     x_train = tf.expand_dims(x_train, axis=0)
 
     labels = [
